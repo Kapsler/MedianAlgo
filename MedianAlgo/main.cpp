@@ -181,23 +181,20 @@ int GetMedianByQuicksort(vector<int>& numbers)
 
 int MyPartitionOf5(vector<int>& numbers, int start, int end)
 {
-	//OPTIMIZE!!!
-
-	vector<int> sorted;
-
+	
 	for(int i = start; i <= end; ++i)
 	{
-		sorted.push_back(numbers[i]);
-	}
-	sort(sorted.begin(), sorted.end());
+		int next = numbers[i];
 
-	for (int i = start; i <= end; ++i)
-	{
-		if(numbers[i] == sorted[(end - start) / 2])
+		unsigned int j;
+		for(j = i; j > start && numbers[j - 1] > next; --j)
 		{
-			return i;
+			numbers[j] = numbers[j - 1];
 		}
+		numbers[j] = next;
 	}
+
+	return start + ((end - start) / 2);
 }
 
 int MyMedianPivot(vector<int>& numbers, int start, int end)
@@ -274,7 +271,7 @@ int GetMedianOfMedians(vector<int>& numbers)
 
 void main()
 {
-	unsigned int numbercount = 10000000;
+	unsigned int numbercount = 100000000;
 	vector<int> numbers, temp;
 	numbers.reserve(numbercount);
 	TimerClass timer;
@@ -284,26 +281,26 @@ void main()
 	GenerateNumbersMersenne(numbers, numbercount);
 	//GenerateNumbersOngoing(numbers, numbercount);
 
-	//temp = numbers;
-	//cout << "Starting Quicksort" << endl;
-	//timer.StartTimer();
-	//median = GetMedianByQuicksort(temp);
-	//seconds = timer.GetTime();
-	//cout << "Median " << median << " in " << seconds << " seconds." << endl;
+	temp = numbers;
+	cout << "Starting Quicksort" << endl;
+	timer.StartTimer();
+	median = GetMedianByQuicksort(temp);
+	seconds = timer.GetTime();
+	cout << "Median " << median << " in " << seconds << " seconds." << endl;
 
-	//temp = numbers;
-	//cout << "Starting NthElement" << endl;
-	//timer.StartTimer();
-	//median = GetMedianByNthElement(temp);
-	//seconds = timer.GetTime();
-	//cout << "Median " << median << " in " << seconds << " seconds." << endl;
+	temp = numbers;
+	cout << "Starting NthElement" << endl;
+	timer.StartTimer();
+	median = GetMedianByNthElement(temp);
+	seconds = timer.GetTime();
+	cout << "Median " << median << " in " << seconds << " seconds." << endl;
 
-	//temp = numbers;
-	//cout << "Starting Random Selection" << endl;
-	//timer.StartTimer();
-	//median = GetMedianByRandomSelection(temp);
-	//seconds = timer.GetTime();
-	//cout << "Median " << median << " in " << seconds << " seconds." << endl;
+	temp = numbers;
+	cout << "Starting Random Selection" << endl;
+	timer.StartTimer();
+	median = GetMedianByRandomSelection(temp);
+	seconds = timer.GetTime();
+	cout << "Median " << median << " in " << seconds << " seconds." << endl;
 
 	temp = numbers;
 	cout << "Starting MedianOfMedians" << endl;
@@ -314,6 +311,6 @@ void main()
 
 	//DebugArray(numbers);
 
-	cout << "Actual Median: " << GetActualMedian(numbers, numbercount) << endl;
+	//cout << "Actual Median: " << GetActualMedian(numbers, numbercount) << endl;
 
 }
