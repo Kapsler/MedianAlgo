@@ -9,6 +9,8 @@
 using namespace std;
 int MyMedianOfMedians(vector<int>& numbers, int start, int end, int k);
 
+//########## HELPER FUNCTIONS BEGIN ##########
+
 void GenerateNumbersMersenne(vector<int>& numbers, unsigned int count)
 {
 	//Init Mersenne Twister with system time
@@ -45,6 +47,7 @@ void GenerateNumbersOngoing(vector<int>& numbers, unsigned int count)
 	random_shuffle(numbers.begin(), numbers.end());
 }
 
+
 void DebugArray(vector<int>& numbers)
 {
 	for (int i = 0; i < numbers.size(); ++i)
@@ -53,6 +56,36 @@ void DebugArray(vector<int>& numbers)
 	}
 }
 
+bool handleParameters(int argc, char* argv[], string& inputFilename, unsigned int& numbercount)
+{
+	CommandLineParser cmdline(argc, argv);
+
+	if (cmdline.cmdOptionExists("--in"))
+	{
+		inputFilename = cmdline.getCmdOption("--in");
+	}
+	else
+	{
+		cerr << "No inputfile, generating numbers!" << endl;
+
+		//If no inputfile --count is needed
+		if (cmdline.cmdOptionExists("--count"))
+		{
+			numbercount = stoi(cmdline.getCmdOption("--count"));
+		}
+		else
+		{
+			cerr << "Parameter --count not found!" << endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+//########## HELPER FUNCTIONS ENDE ##########
+//########## Sort BEGIN ##########
+
 int GetActualMedian(vector<int>& numbers)
 {
 	sort(numbers.begin(), numbers.end());
@@ -60,12 +93,18 @@ int GetActualMedian(vector<int>& numbers)
 	return numbers.at(numbers.size() / 2);
 }
 
+//########## Sort ENDE ##########
+//########## Nth Element BEGIN ##########
+
 int GetMedianByNthElement(vector<int>& numbers)
 {
 	nth_element(numbers.begin(), numbers.begin() + numbers.size() / 2, numbers.end());
 
 	return numbers[numbers.size() / 2];
 }
+
+//########## Nth Element ENDE ##########
+//########## Random Select BEGIN ##########
 
 int MyRandomPartition(vector<int>& numbers, int start, int end)
 {
@@ -121,7 +160,7 @@ int MyRandomSelection(vector<int>& numbers, int start, int end, int k)
 	}
 
 	//Should not happen
-	return INT_MAX;
+	return -1;
 }
 
 int GetMedianByRandomSelection(vector<int>& numbers)
@@ -132,7 +171,10 @@ int GetMedianByRandomSelection(vector<int>& numbers)
 	return median;
 }
 
-int MyPartition(vector<int>& numbers, int low, int high)
+//########## Random Select ENDE ##########
+//########## Quicksort Begin ##########
+
+int MyQuicksortPartition(vector<int>& numbers, int low, int high)
 {
 	int pivot = numbers[low];
 	int i = low - 1;
@@ -167,7 +209,7 @@ void MyQuicksort(vector<int>& numbers, int low, int high)
 		return;
 	}
 
-	int p = MyPartition(numbers, low, high);
+	int p = MyQuicksortPartition(numbers, low, high);
 	MyQuicksort(numbers, low, p);
 	MyQuicksort(numbers, p + 1, high);
 }
@@ -179,6 +221,9 @@ int GetMedianByQuicksort(vector<int>& numbers)
 
 	return numbers[numbers.size() / 2];
 }
+
+//########## Quicksort ENDE ##########
+//########## Median of Medians BEGIN ##########
 
 int MyPartitionOf5(vector<int>& numbers, int start, int end)
 {
@@ -271,37 +316,28 @@ int GetMedianOfMedians(vector<int>& numbers)
 	return numbers[numbers.size() / 2];
 }
 
-//Median of Medians Ende
+//########## Median of Medians ENDE ##########
 
-bool handleParameters(int argc, char* argv[], string& inputFilename, unsigned int& numbercount)
-{
-	CommandLineParser cmdline(argc, argv);
 
-	if (cmdline.cmdOptionExists("--in"))
-	{
-		inputFilename = cmdline.getCmdOption("--in");
-	}
-	else
-	{
-		cerr << "No inputfile, generating numbers!" << endl;
-		
-		//If no inputfile --count is needed
-		if (cmdline.cmdOptionExists("--count"))
-		{
-			numbercount = stoi(cmdline.getCmdOption("--count"));
-		}
-		else
-		{
-			cerr << "Parameter --count not found!" << endl;
-			return false;
-		}
-	}
-
-	return true;
-}
+/* 
+ * Generating Random numbers is way faster than reading from input, also saves disk space I guess.
+ * Generating of random numbers works by calling the built in mersenne twister. 
+ * Seed is time_since_epoch by chrono::high_resolution_clock::now()
+ * Warumup of 800000 Iterations
+ * 
+ * Different Algorithms are called one by one.
+ * To ensure a fair measurement, the vector of numbers is copied by value before given to the algorithm.
+ * Measuring time begins one function call before the algorithm starts
+ * Measuring time ends after the median is returned
+ * 
+ * Output Format: 
+ * ALGORITHM median FOUND_MEDIAN in TIMED_SECONDS seconds.
+ *
+ */
 
 int main(int argc, char* argv[])
 {
+	//Init stuff
 	unsigned int numbercount;
 	vector<int> numbers, temp;
 	string inputfile = "";
@@ -309,15 +345,18 @@ int main(int argc, char* argv[])
 	double seconds = 0;
 	int median = 0;
 
+	//Handle parameters
 	if (!handleParameters(argc, argv, inputfile, numbercount))
 	{
 		return -1;
 	}
 
+	//If inputfile was found
 	if (!inputfile.empty())
 	{
 		ReaderWriter readwrite(inputfile, numbers);
 	}
+	//If count is bigger than 0
 	else if (numbercount > 0)
 	{
 		numbers.reserve(numbercount);
@@ -330,13 +369,14 @@ int main(int argc, char* argv[])
 		return false;
 	}
 
+	//Quicksort
 	temp = numbers;
 	cout << endl;
 	cout << "Starting Quicksort" << endl;
 	timer.StartTimer();
 	median = GetMedianByQuicksort(temp);
 	seconds = timer.GetTime();
-	cout << "Median " << median << " in " << seconds << " seconds." << endl;
+	cout << "Quicksort median " << median << " in " << seconds << " seconds." << endl;
 
 	temp = numbers;
 	cout << endl;
@@ -344,7 +384,7 @@ int main(int argc, char* argv[])
 	timer.StartTimer();
 	median = GetMedianByNthElement(temp);
 	seconds = timer.GetTime();
-	cout << "Median " << median << " in " << seconds << " seconds." << endl;
+	cout << "Nth Element median " << median << " in " << seconds << " seconds." << endl;
 
 	temp = numbers;
 	cout << endl;
@@ -352,7 +392,7 @@ int main(int argc, char* argv[])
 	timer.StartTimer();
 	median = GetMedianByRandomSelection(temp);
 	seconds = timer.GetTime();
-	cout << "Median " << median << " in " << seconds << " seconds." << endl;
+	cout << "Random Select median " << median << " in " << seconds << " seconds." << endl;
 
 	temp = numbers;
 	cout << endl;
@@ -360,7 +400,7 @@ int main(int argc, char* argv[])
 	timer.StartTimer();
 	median = GetMedianOfMedians(temp);
 	seconds = timer.GetTime();
-	cout << "Median " << median << " in " << seconds << " seconds." << endl;
+	cout << "Median of medians median " << median << " in " << seconds << " seconds." << endl;
 
 	//DebugArray(numbers);
 
