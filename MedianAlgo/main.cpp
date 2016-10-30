@@ -3,17 +3,19 @@
 #include <chrono>
 #include <algorithm>
 #include "TimerClass.h"
+#include "ReaderWriter.h"
+#include "CommandLineParser.h"
 
 using namespace std;
 int MyMedianOfMedians(vector<int>& numbers, int start, int end, int k);
 
-void GenerateNumbersMersenne(vector<int>& numbers,unsigned int count){
-
+void GenerateNumbersMersenne(vector<int>& numbers, unsigned int count)
+{
 	//Init Mersenne Twister with system time
 	std::mt19937 twister(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 
 	//warmup
-	for (auto i = 0; i< 800000; ++i)
+	for (auto i = 0; i < 800000; ++i)
 	{
 		twister();
 	}
@@ -22,16 +24,15 @@ void GenerateNumbersMersenne(vector<int>& numbers,unsigned int count){
 	{
 		numbers.push_back(twister());
 	}
-
 }
 
-void GenerateNumbersOngoing(vector<int>& numbers, unsigned int count){
-
+void GenerateNumbersOngoing(vector<int>& numbers, unsigned int count)
+{
 	//Since random_shuffle uses the twister, we have to seed it first
 	std::mt19937 twister(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 
 	//warmup
-	for (auto i = 0; i< 800000; ++i)
+	for (auto i = 0; i < 800000; ++i)
 	{
 		twister();
 	}
@@ -42,7 +43,6 @@ void GenerateNumbersOngoing(vector<int>& numbers, unsigned int count){
 	}
 
 	random_shuffle(numbers.begin(), numbers.end());
-
 }
 
 void DebugArray(vector<int>& numbers)
@@ -53,12 +53,11 @@ void DebugArray(vector<int>& numbers)
 	}
 }
 
-int GetActualMedian(vector<int>& numbers, int count)
+int GetActualMedian(vector<int>& numbers)
 {
 	sort(numbers.begin(), numbers.end());
 
-	return numbers.at(count / 2);
-
+	return numbers.at(numbers.size() / 2);
 }
 
 int GetMedianByNthElement(vector<int>& numbers)
@@ -78,9 +77,9 @@ int MyRandomPartition(vector<int>& numbers, int start, int end)
 
 	int i = start - 1;
 
-	for(int j = start; j <= end; ++j)
+	for (int j = start; j <= end; ++j)
 	{
-		if(numbers[j] <= pivot)
+		if (numbers[j] <= pivot)
 		{
 			i = i + 1;
 			iter_swap(numbers.begin() + i, numbers.begin() + j);
@@ -93,27 +92,29 @@ int MyRandomPartition(vector<int>& numbers, int start, int end)
 
 int MyRandomSelection(vector<int>& numbers, int start, int end, int k)
 {
-	if(start == end)
+	if (start == end)
 	{
 		return numbers[start];
 	}
 
-	if(k == 0)
+	if (k == 0)
 	{
 		return -1;
 	}
 
-	if(start < end)
+	if (start < end)
 	{
 		int mid = MyRandomPartition(numbers, start, end);
 		int i = mid - start + 1;
-		if(i==k)
+		if (i == k)
 		{
 			return numbers[mid];
-		} else if(k < i)
+		}
+		else if (k < i)
 		{
 			return MyRandomSelection(numbers, start, mid - 1, k);
-		} else
+		}
+		else
 		{
 			return MyRandomSelection(numbers, mid + 1, end, k - i);
 		}
@@ -121,13 +122,12 @@ int MyRandomSelection(vector<int>& numbers, int start, int end, int k)
 
 	//Should not happen
 	return INT_MAX;
-
 }
 
 int GetMedianByRandomSelection(vector<int>& numbers)
 {
 	srand(chrono::high_resolution_clock::now().time_since_epoch().count());
-	int median = MyRandomSelection(numbers, 1, numbers.size()-1, numbers.size()/2);
+	int median = MyRandomSelection(numbers, 1, numbers.size() - 1, numbers.size() / 2);
 
 	return median;
 }
@@ -137,31 +137,32 @@ int MyPartition(vector<int>& numbers, int low, int high)
 	int pivot = numbers[low];
 	int i = low - 1;
 	int j = high + 1;
-	while(true)
+	while (true)
 	{
 		do
 		{
 			i++;
-		} while (numbers[i] < pivot);
+		}
+		while (numbers[i] < pivot);
 
 		do
 		{
 			j--;
-		} while (numbers[j] > pivot);
+		}
+		while (numbers[j] > pivot);
 
-		if(i >= j)
+		if (i >= j)
 		{
 			return j;
 		}
 
 		iter_swap(numbers.begin() + i, numbers.begin() + j);
 	}
-
 }
 
 void MyQuicksort(vector<int>& numbers, int low, int high)
 {
-	if(low >= high)
+	if (low >= high)
 	{
 		return;
 	}
@@ -181,13 +182,12 @@ int GetMedianByQuicksort(vector<int>& numbers)
 
 int MyPartitionOf5(vector<int>& numbers, int start, int end)
 {
-	
-	for(int i = start; i <= end; ++i)
+	for (int i = start; i <= end; ++i)
 	{
 		int next = numbers[i];
 
 		unsigned int j;
-		for(j = i; j > start && numbers[j - 1] > next; --j)
+		for (j = i; j > start && numbers[j - 1] > next; --j)
 		{
 			numbers[j] = numbers[j - 1];
 		}
@@ -199,15 +199,15 @@ int MyPartitionOf5(vector<int>& numbers, int start, int end)
 
 int MyMedianPivot(vector<int>& numbers, int start, int end)
 {
-	if(end - start < 5)
+	if (end - start < 5)
 	{
 		return MyPartitionOf5(numbers, start, end);
 	}
 
-	for(int i = start; i <= end; i+=5)
+	for (int i = start; i <= end; i += 5)
 	{
 		int subEnd = i + 4;
-		if(subEnd > end)
+		if (subEnd > end)
 		{
 			subEnd = end;
 		}
@@ -224,24 +224,24 @@ int MyMedianPartition(vector<int>& numbers, int start, int end, int pivotindex)
 	int pivot = numbers[pivotindex];
 	iter_swap(numbers.begin() + pivotindex, numbers.begin() + end);
 	int tempindex = start;
-	for(int i = start; i < end; i++)
+	for (int i = start; i < end; i++)
 	{
-		if(numbers[i] < pivot)
+		if (numbers[i] < pivot)
 		{
 			iter_swap(numbers.begin() + tempindex, numbers.begin() + i);
 			tempindex++;
 		}
 	}
-	
+
 	iter_swap(numbers.begin() + end, numbers.begin() + tempindex);
 	return tempindex;
 }
 
 int MyMedianOfMedians(vector<int>& numbers, int start, int end, int k)
 {
-	while(true)
+	while (true)
 	{
-		if(start == end)
+		if (start == end)
 		{
 			return start;
 		}
@@ -249,13 +249,15 @@ int MyMedianOfMedians(vector<int>& numbers, int start, int end, int k)
 		int pivotIndex = MyMedianPivot(numbers, start, end);
 		pivotIndex = MyMedianPartition(numbers, start, end, pivotIndex);
 
-		if(k == pivotIndex)
+		if (k == pivotIndex)
 		{
 			return k;
-		} else if(k < pivotIndex)
+		}
+		else if (k < pivotIndex)
 		{
 			end = pivotIndex - 1;
-		} else
+		}
+		else
 		{
 			start = pivotIndex + 1;
 		}
@@ -264,24 +266,72 @@ int MyMedianOfMedians(vector<int>& numbers, int start, int end, int k)
 
 int GetMedianOfMedians(vector<int>& numbers)
 {
-	int median = MyMedianOfMedians(numbers, 1, numbers.size()-1, numbers.size() / 2);
+	int median = MyMedianOfMedians(numbers, 1, numbers.size() - 1, numbers.size() / 2);
 
 	return numbers[numbers.size() / 2];
 }
 
-void main()
+//Median of Medians Ende
+
+bool handleParameters(int argc, char* argv[], string& inputFilename, unsigned int& numbercount)
 {
-	unsigned int numbercount = 100000000;
+	CommandLineParser cmdline(argc, argv);
+
+	if (cmdline.cmdOptionExists("--in"))
+	{
+		inputFilename = cmdline.getCmdOption("--in");
+	}
+	else
+	{
+		cerr << "No inputfile, generating numbers!" << endl;
+		
+		//If no inputfile --count is needed
+		if (cmdline.cmdOptionExists("--count"))
+		{
+			numbercount = stoi(cmdline.getCmdOption("--count"));
+		}
+		else
+		{
+			cerr << "Parameter --count not found!" << endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+int main(int argc, char* argv[])
+{
+	unsigned int numbercount;
 	vector<int> numbers, temp;
-	numbers.reserve(numbercount);
+	string inputfile = "";
 	TimerClass timer;
 	double seconds = 0;
 	int median = 0;
 
-	GenerateNumbersMersenne(numbers, numbercount);
-	//GenerateNumbersOngoing(numbers, numbercount);
+	if (!handleParameters(argc, argv, inputfile, numbercount))
+	{
+		return -1;
+	}
+
+	if (!inputfile.empty())
+	{
+		ReaderWriter readwrite(inputfile, numbers);
+	}
+	else if (numbercount > 0)
+	{
+		numbers.reserve(numbercount);
+		cout << "Generating " << numbercount << " numbers!" << endl;
+		GenerateNumbersMersenne(numbers, numbercount);
+		//GenerateNumbersOngoing(numbers, numbercount);
+	} else
+	{
+		cerr << "Input wrong!" << endl;
+		return false;
+	}
 
 	temp = numbers;
+	cout << endl;
 	cout << "Starting Quicksort" << endl;
 	timer.StartTimer();
 	median = GetMedianByQuicksort(temp);
@@ -289,6 +339,7 @@ void main()
 	cout << "Median " << median << " in " << seconds << " seconds." << endl;
 
 	temp = numbers;
+	cout << endl;
 	cout << "Starting NthElement" << endl;
 	timer.StartTimer();
 	median = GetMedianByNthElement(temp);
@@ -296,6 +347,7 @@ void main()
 	cout << "Median " << median << " in " << seconds << " seconds." << endl;
 
 	temp = numbers;
+	cout << endl;
 	cout << "Starting Random Selection" << endl;
 	timer.StartTimer();
 	median = GetMedianByRandomSelection(temp);
@@ -303,6 +355,7 @@ void main()
 	cout << "Median " << median << " in " << seconds << " seconds." << endl;
 
 	temp = numbers;
+	cout << endl;
 	cout << "Starting MedianOfMedians" << endl;
 	timer.StartTimer();
 	median = GetMedianOfMedians(temp);
@@ -311,6 +364,11 @@ void main()
 
 	//DebugArray(numbers);
 
-	//cout << "Actual Median: " << GetActualMedian(numbers, numbercount) << endl;
-
+	temp = numbers;
+	cout << endl;
+	cout << "Starting sort()" << endl;
+	timer.StartTimer();
+	median = GetActualMedian(temp);
+	seconds = timer.GetTime();
+	cout << "Actual Median: " << median << " in " << seconds << " seconds." << endl;
 }
