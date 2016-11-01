@@ -118,7 +118,7 @@ int MyRandomPartition(vector<int>& numbers, int start, int end)
 
 	for (int j = start; j <= end; ++j)
 	{
-		if (numbers[j] <= pivot)
+		if (numbers[j] < pivot)
 		{
 			i = i + 1;
 			iter_swap(numbers.begin() + i, numbers.begin() + j);
@@ -166,7 +166,7 @@ int MyRandomSelection(vector<int>& numbers, int start, int end, int k)
 int GetMedianByRandomSelection(vector<int>& numbers)
 {
 	srand(chrono::high_resolution_clock::now().time_since_epoch().count());
-	int median = MyRandomSelection(numbers, 1, numbers.size() - 1, numbers.size() / 2);
+	int median = MyRandomSelection(numbers, 0, numbers.size() - 1, numbers.size() / 2);
 
 	return median;
 }
@@ -227,7 +227,7 @@ int GetMedianByQuicksort(vector<int>& numbers)
 
 int MyPartitionOf5(vector<int>& numbers, int start, int end)
 {
-	for (int i = start; i <= end; ++i)
+	for (int i = start + 1; i <= end; ++i)
 	{
 		int next = numbers[i];
 
@@ -313,7 +313,7 @@ int GetMedianOfMedians(vector<int>& numbers)
 {
 	int median = MyMedianOfMedians(numbers, 1, numbers.size() - 1, numbers.size() / 2);
 
-	return numbers[numbers.size() / 2];
+	return median;
 }
 
 //########## Median of Medians ENDE ##########
@@ -361,8 +361,8 @@ int main(int argc, char* argv[])
 	{
 		numbers.reserve(numbercount);
 		cout << "Generating " << numbercount << " numbers!" << endl;
-		GenerateNumbersMersenne(numbers, numbercount);
-		//GenerateNumbersOngoing(numbers, numbercount);
+		//GenerateNumbersMersenne(numbers, numbercount);
+		GenerateNumbersOngoing(numbers, numbercount);
 	} else
 	{
 		cerr << "Input wrong!" << endl;
