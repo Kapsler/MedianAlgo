@@ -108,59 +108,48 @@ int GetMedianByNthElement(vector<int>& numbers)
 
 int MyRandomPartition(vector<int>& numbers, int start, int end)
 {
-	int pivotindex = start + rand() % (end - start + 1);
+	int pivotindex = start + (rand() % (end - start + 1));
 	int pivot = numbers[pivotindex];
 
 	iter_swap(numbers.begin() + pivotindex, numbers.begin() + end);
 	pivotindex = end;
 
-	int i = start - 1;
+	int storeIndex = start;
 
-	for (int j = start; j <= end; ++j)
+	for (int j = start; j < end; ++j)
 	{
 		if (numbers[j] < pivot)
 		{
-			i = i + 1;
-			iter_swap(numbers.begin() + i, numbers.begin() + j);
+			iter_swap(numbers.begin() + storeIndex, numbers.begin() + j);
+			storeIndex = storeIndex + 1;
 		}
 	}
 
-	iter_swap(numbers.begin() + i + 1, numbers.begin() + pivotindex);
-	return i + 1;
+	iter_swap(numbers.begin() + storeIndex, numbers.begin() + pivotindex);
+	return storeIndex;
 }
 
-int MyRandomSelection(vector<int>& numbers, int start, int end, int k)
+int MyRandomSelection(vector<int>& numbers, int start, int end, int n)
 {
 	if (start == end)
 	{
 		return numbers[start];
 	}
 
-	if (k == 0)
+	int pivotindex = MyRandomPartition(numbers, start, end);
+	if (pivotindex == n)
 	{
-		return -1;
+		return numbers[n];
 	}
-
-	if (start < end)
+	else if (n < pivotindex)
 	{
-		int mid = MyRandomPartition(numbers, start, end);
-		int i = mid - start + 1;
-		if (i == k)
-		{
-			return numbers[mid];
-		}
-		else if (k < i)
-		{
-			return MyRandomSelection(numbers, start, mid - 1, k);
-		}
-		else
-		{
-			return MyRandomSelection(numbers, mid + 1, end, k - i);
-		}
+		return MyRandomSelection(numbers, start, pivotindex - 1, n);
 	}
-
-	//Should not happen
-	return -1;
+	else
+	{
+		return MyRandomSelection(numbers, pivotindex + 1, end, n);
+	}
+	
 }
 
 int GetMedianByRandomSelection(vector<int>& numbers)
@@ -227,7 +216,7 @@ int GetMedianByQuicksort(vector<int>& numbers)
 
 int MyPartitionOf5(vector<int>& numbers, int start, int end)
 {
-	for (int i = start + 1; i <= end; ++i)
+	for (int i = start; i <= end; ++i)
 	{
 		int next = numbers[i];
 
@@ -244,7 +233,7 @@ int MyPartitionOf5(vector<int>& numbers, int start, int end)
 
 int MyMedianPivot(vector<int>& numbers, int start, int end)
 {
-	if (end - start < 5)
+	if (end - start <= 5)
 	{
 		return MyPartitionOf5(numbers, start, end);
 	}
@@ -311,9 +300,9 @@ int MyMedianOfMedians(vector<int>& numbers, int start, int end, int k)
 
 int GetMedianOfMedians(vector<int>& numbers)
 {
-	int median = MyMedianOfMedians(numbers, 1, numbers.size() - 1, numbers.size() / 2);
+	int median = MyMedianOfMedians(numbers, 0, numbers.size() - 1, numbers.size() / 2);
 
-	return median;
+	return numbers[median];
 }
 
 //########## Median of Medians ENDE ##########
@@ -361,8 +350,8 @@ int main(int argc, char* argv[])
 	{
 		numbers.reserve(numbercount);
 		cout << "Generating " << numbercount << " numbers!" << endl;
-		//GenerateNumbersMersenne(numbers, numbercount);
-		GenerateNumbersOngoing(numbers, numbercount);
+		GenerateNumbersMersenne(numbers, numbercount);
+		//GenerateNumbersOngoing(numbers, numbercount);
 	} else
 	{
 		cerr << "Input wrong!" << endl;
